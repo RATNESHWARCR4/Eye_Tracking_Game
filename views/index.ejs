@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.3.4/axios.min.js"
+      integrity="sha512-LUKzDoJKOLqnxGWWIBM4lzRBlxcva2ZTztO8bTcWPmDSpkErWx0bSP4pdsjNH8kiHAUPaT06UXcb+vOEZH+HpQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div style="height: 80vh; width: 80vw">
+      <canvas id="myChart"></canvas>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      const userTime = [];
+      const countLabel = [];
+
+      const getCookie = (name) => {
+        const value = "; " + document.cookie;
+        const parts = value.split("; " + name + "=");
+        if (parts.length === 2) return parts.pop().split(";").shift();
+      };
+      const parseObjectFromCookie = (cookie) => {
+        const decodedCookie = decodeURIComponent(cookie);
+        return JSON.parse(decodedCookie);
+      };
+      window.addEventListener("load", async () => {
+        let dataCookie = getCookie("data");
+        const KEY = parseObjectFromCookie(getCookie("data"));
+        if (KEY) {
+          const data = await fetch("/analytics", {
+            headers: {
+              Authorization: KEY.id,
+              "Content-Type": "application/json",
+            },
+          })
+            .then((data) => {
+              return data.json();
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+          if (data) {
+            for (var i = 0; i < data.length; i++) {
+              userTime.push(data[i].time);
+              countLabel.push(i + 1);
+            }
+            const ctx = document.getElementById("myChart");
+            Chart.defaults.font.size = 14;
+            
+            if (userTime) {
+              const data = {
+                labels: countLabel,
+                datasets: [
+                  {
+                    label: KEY.username + "'s Data Analysis",
+                    data: userTime,
+                    fill: false,
+                    backgroundColor: [
+                      "rgba(255, 99, 132, 0.2)",
+                      "rgba(255, 159, 64, 0.2)",
+                      "rgba(255, 205, 86, 0.2)",
+                      "rgba(75, 192, 192, 0.2)",
+                      "rgba(54, 162, 235, 0.2)",
+                      "rgba(153, 102, 255, 0.2)",
+                      "rgba(201, 203, 207, 0.2)",
+                    ],
+                    borderColor: [
+                      "rgb(255, 99, 132)",
+                      "rgb(255, 159, 64)",
+                      "rgb(255, 205, 86)",
+                      "rgb(75, 192, 192)",
+                      "rgb(54, 162, 235)",
+                      "rgb(153, 102, 255)",
+                      "rgb(201, 203, 207)",
+                    ],
+                    borderWidth: 4,
+                    tension: "0.4",
+                  },
+                ],
+              };
+
+              new Chart(ctx, {
+                type: "line",
+
+                data: data,
+                options: {
+                  scales: {
+                    x: {
+                      ticks: {
+                        font: {
+                          weight: "bold",
+                          size: 13,
+                        },
+                      },
+                      title: {
+                        display: true,
+                        text: "Number of times user has played the game",
+                      },
+                      grid: {
+                        display: false,
+                        drawTicks: false,
+                      },
+                    },
+                    y: {
+                      ticks: {
+                        font: {
+                          weight: "bold",
+                          size: 13,
+                        },
+                      },
+                      title: {
+                        display: true,
+                        text: "Time in seconds",
+                      },
+                      grid: {
+                        display: false,
+                        drawTicks: false,
+                      },
+                    },
+                  },
+                },
+              });
+            }
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
